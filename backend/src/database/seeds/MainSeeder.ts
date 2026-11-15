@@ -1,4 +1,6 @@
 import { DataSource } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import { TipoUsuario } from '../../usuarios/enums/tipo-usuario.enum';
 
 export default class MainSeeder {
   public async run(dataSource: DataSource): Promise<void> {
@@ -12,52 +14,54 @@ export default class MainSeeder {
     const itemVendaRepository = dataSource.getRepository('ItemVenda');
     const pagamentoRepository = dataSource.getRepository('Pagamento');
 
+    const senhaHash = await bcrypt.hash('123456', 10);
+
     // ==========================================
-    // 1. CRIAR USUÁRIOS (Admin, Artesãos e Clientes)
+    // 1. CRIAR/ATUALIZAR USUÁRIOS
     // ==========================================
     const adminUser = await this.findOrCreateUser(usuarioRepository, {
       nome: 'Administrador Geral',
       email: 'admin@artesao.com',
-      senha_hash: '123',
+      senha_hash: senhaHash,
       telefone: '(84) 99999-0000',
-      tipo_usuario: 'admin',
+      tipo_usuario: TipoUsuario.ADMIN,
     });
 
     const artesaoUsers = [
       await this.findOrCreateUser(usuarioRepository, {
         nome: 'Ana Medeiros',
         email: 'anamedeiros@artesao.com',
-        senha_hash: '123',
+        senha_hash: senhaHash,
         telefone: '(84) 99999-1111',
-        tipo_usuario: 'artesao',
+        tipo_usuario: TipoUsuario.ARTESAO,
       }),
       await this.findOrCreateUser(usuarioRepository, {
         nome: 'João de Barro',
         email: 'joaodebarro@artesao.com',
-        senha_hash: '123',
+        senha_hash: senhaHash,
         telefone: '(84) 99999-2222',
-        tipo_usuario: 'artesao',
+        tipo_usuario: TipoUsuario.ARTESAO,
       }),
       await this.findOrCreateUser(usuarioRepository, {
         nome: 'Maria Francisca',
         email: 'maria@artesao.com',
-        senha_hash: '123',
+        senha_hash: senhaHash,
         telefone: '(84) 99999-3333',
-        tipo_usuario: 'artesao',
+        tipo_usuario: TipoUsuario.ARTESAO,
       }),
       await this.findOrCreateUser(usuarioRepository, {
         nome: 'Severino Cordeiro',
         email: 'severino@artesao.com',
-        senha_hash: '123',
+        senha_hash: senhaHash,
         telefone: '(84) 99999-4444',
-        tipo_usuario: 'artesao',
+        tipo_usuario: TipoUsuario.ARTESAO,
       }),
       await this.findOrCreateUser(usuarioRepository, {
         nome: 'Luzia Artes',
         email: 'luzia@artesao.com',
-        senha_hash: '123',
+        senha_hash: senhaHash,
         telefone: '(84) 99999-5555',
-        tipo_usuario: 'artesao',
+        tipo_usuario: TipoUsuario.ARTESAO,
       }),
     ];
 
@@ -65,37 +69,37 @@ export default class MainSeeder {
       await this.findOrCreateUser(usuarioRepository, {
         nome: 'João da Silva',
         email: 'joao@cliente.com',
-        senha_hash: '123',
+        senha_hash: senhaHash,
         telefone: '(84) 98888-1111',
-        tipo_usuario: 'cliente',
+        tipo_usuario: TipoUsuario.CLIENTE,
       }),
       await this.findOrCreateUser(usuarioRepository, {
         nome: 'Carla Souza',
         email: 'carla@cliente.com',
-        senha_hash: '123',
+        senha_hash: senhaHash,
         telefone: '(84) 98888-2222',
-        tipo_usuario: 'cliente',
+        tipo_usuario: TipoUsuario.CLIENTE,
       }),
       await this.findOrCreateUser(usuarioRepository, {
         nome: 'Marcos Oliveira',
         email: 'marcos@cliente.com',
-        senha_hash: '123',
+        senha_hash: senhaHash,
         telefone: '(84) 98888-3333',
-        tipo_usuario: 'cliente',
+        tipo_usuario: TipoUsuario.CLIENTE,
       }),
       await this.findOrCreateUser(usuarioRepository, {
         nome: 'Beatriz Lima',
         email: 'beatriz@cliente.com',
-        senha_hash: '123',
+        senha_hash: senhaHash,
         telefone: '(84) 98888-4444',
-        tipo_usuario: 'cliente',
+        tipo_usuario: TipoUsuario.CLIENTE,
       }),
       await this.findOrCreateUser(usuarioRepository, {
         nome: 'Lucas Mendes',
         email: 'lucas@cliente.com',
-        senha_hash: '123',
+        senha_hash: senhaHash,
         telefone: '(84) 98888-5555',
-        tipo_usuario: 'cliente',
+        tipo_usuario: TipoUsuario.CLIENTE,
       }),
     ];
 
@@ -132,7 +136,9 @@ export default class MainSeeder {
 
     const artesaos = [];
     for (let i = 0; i < artesaoUsers.length; i++) {
-      let artesao = await artesaoRepository.findOne({ where: { usuario: { id_usuario: artesaoUsers[i].id_usuario } } });
+      let artesao = await artesaoRepository.findOne({
+        where: { usuario: { id_usuario: artesaoUsers[i].id_usuario } },
+      });
       if (!artesao) {
         artesao = await artesaoRepository.save({
           usuario: artesaoUsers[i],
@@ -163,7 +169,9 @@ export default class MainSeeder {
 
     const clientes = [];
     for (let i = 0; i < clienteUsers.length; i++) {
-      let cliente = await clienteRepository.findOne({ where: { usuario: { id_usuario: clienteUsers[i].id_usuario } } });
+      let cliente = await clienteRepository.findOne({
+        where: { usuario: { id_usuario: clienteUsers[i].id_usuario } },
+      });
       if (!cliente) {
         cliente = await clienteRepository.save({
           usuario: clienteUsers[i],
@@ -175,52 +183,53 @@ export default class MainSeeder {
     }
 
     // ==========================================
-    // 5. CRIAR PRODUTOS (5 produtos variados)
+    // 5. CRIAR PRODUTOS
     // ==========================================
     const produtosData = [
       {
         nome: 'Toalha de Mesa Bordada',
         descricao: 'Toalha de mesa em linho com detalhes em ponto cruz.',
         preco: 120.00,
-        estoqueAtual: 10,
+        quantidade_estoque: 10,
         artesao: artesaos[0],
         categoria: categoriasMap.get('Bordados e Rendas'),
-        imagem_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj-wCWCN7shTvN0lm8XwYLsa3GDNvNCBsew4bOplPdyA&s=10'},
+        imagem_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj-wCWCN7shTvN0lm8XwYLsa3GDNvNCBsew4bOplPdyA&s=10',
+      },
       {
         nome: 'Panela de Barro Artesanal',
         descricao: 'Panela feita à mão ideal para culinária regional.',
         preco: 85.50,
-        estoqueAtual: 8,
+        quantidade_estoque: 8,
         artesao: artesaos[1],
         categoria: categoriasMap.get('Cerâmica e Barro'),
-        imagem_url:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmX5HPsnxI5qESUMHxd0AQrJWXa4p5cZy7l-LieSWiyA&s=10',
+        imagem_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmX5HPsnxI5qESUMHxd0AQrJWXa4p5cZy7l-LieSWiyA&s=10',
       },
       {
         nome: 'Porta-Retrato em Madeira Rústica',
         descricao: 'Porta-retrato esculpido em madeira reaproveitada.',
         preco: 45.00,
-        estoqueAtual: 15,
+        quantidade_estoque: 15,
         artesao: artesaos[2],
         categoria: categoriasMap.get('Trabalhos em Madeira'),
-        imagem_url:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNcrlDAFCp6d5AQll7ktCmJjNjafRKoSfqdHzD9Q_cFQ&s=10',
+        imagem_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNcrlDAFCp6d5AQll7ktCmJjNjafRKoSfqdHzD9Q_cFQ&s=10',
       },
       {
         nome: 'Tapete de Crochê Redondo',
         descricao: 'Tapete artesanal colorido em barbante de algodão.',
         preco: 95.00,
-        estoqueAtual: 6,
+        quantidade_estoque: 6,
         artesao: artesaos[3],
         categoria: categoriasMap.get('Crochê e Tricô'),
-        imagem_url:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0vyhE5nvyoUAlo4dX7QXAK2_-hKPFRkIwMqsLymIvEQ&s=10',
+        imagem_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0vyhE5nvyoUAlo4dX7QXAK2_-hKPFRkIwMqsLymIvEQ&s=10',
       },
       {
         nome: 'Colar Artesanal',
         descricao: 'Colar ecológico feito com pedras.',
         preco: 30.00,
-        estoqueAtual: 20,
+        quantidade_estoque: 20,
         artesao: artesaos[4],
         categoria: categoriasMap.get('Bijuterias e Acessórios'),
-        imagemUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKMIJocga86xWE9X3PRmfOoL1FimReSHTj_tDMemzJ0A&s=10', 
+        imagem_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKMIJocga86xWE9X3PRmfOoL1FimReSHTj_tDMemzJ0A&s=10',
       },
     ];
 
@@ -241,7 +250,7 @@ export default class MainSeeder {
       const movimentacoes = produtos.map((prod) => ({
         produto: prod,
         tipoMovimentacao: 'ENTRADA',
-        quantidade: prod.estoqueAtual,
+        quantidade: prod.quantidade_estoque,
         motivo: 'Carga inicial de estoque via seeder',
       }));
       await movEstoqueRepository.save(movimentacoes);
@@ -252,7 +261,6 @@ export default class MainSeeder {
     // ==========================================
     const totalVendas = await vendaRepository.count();
     if (totalVendas === 0) {
-      // Simulando 3 vendas diferentes
       const vendasSimuladas = [
         {
           cliente: clientes[0],
@@ -293,7 +301,7 @@ export default class MainSeeder {
 
         for (const item of vData.itens) {
           await itemVendaRepository.save({
-            venda: venda,
+            venda,
             produto: item.produto,
             quantidade: item.quantidade,
             precoUnitario: item.precoUnitario,
@@ -304,21 +312,29 @@ export default class MainSeeder {
         }
 
         await pagamentoRepository.save({
-          venda: venda,
+          venda,
           formaPagamento: vData.pagamento.formaPagamento,
           valor: vData.pagamento.valor,
           status: vData.pagamento.status,
         });
       }
-      console.log('✅ Massa de dados com 5 registros por entidade criada com sucesso!');
+      console.log('Massa de dados com 5 registros por entidade criada com sucesso!');
     }
   }
 
   private async findOrCreateUser(repo: any, userData: any) {
     let user = await repo.findOneBy({ email: userData.email });
-    if (!user) {
+
+    if (user) {
+      // Atualiza somente credenciais e tipo dos usuários de demonstração.
+      // Os demais dados do usuário existente são preservados.
+      user.senha_hash = userData.senha_hash;
+      user.tipo_usuario = userData.tipo_usuario;
+      await repo.save(user);
+    } else {
       user = await repo.save(userData);
     }
+
     return user;
   }
 }
