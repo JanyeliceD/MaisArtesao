@@ -25,11 +25,10 @@ import { Venda } from './vendas/venda.entity';
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
+      url: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
       entities: [Usuario, Produto, Categoria, Artesao, MovimentacaoEstoque, ItemVenda, Venda, Cliente, Pagamento],
       synchronize: true,
     }),
@@ -44,3 +43,14 @@ import { Venda } from './vendas/venda.entity';
   providers: [AppService],
 })
 export class AppModule {}
+
+//TypeOrmModule.forRoot({
+      //type: 'postgres',
+     // host: process.env.DB_HOST,
+      //port: Number(process.env.DB_PORT),
+      //username: process.env.DB_USERNAME,
+      //password: process.env.DB_PASSWORD,
+      ///database: process.env.DB_DATABASE,
+      //entities: [Usuario, Produto, Categoria, Artesao, MovimentacaoEstoque, ItemVenda, Venda, Cliente, Pagamento],
+      //synchronize: true,
+    //}),
