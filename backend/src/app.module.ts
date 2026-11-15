@@ -6,13 +6,20 @@ import { AppService } from './app.service';
 import { Usuario } from './usuarios/usuario.entity';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { AuthModule } from './auth/auth.module';
-
-
 import { Produto } from './produtos/produto.entity';
 import { Categoria } from './categorias/categoria.entity';
 import { ProdutosModule } from './produtos/produtos.module';
 import { CategoriasModule } from './categorias/categorias.module';
 import { Artesao } from './artesaos/artesao.entity';
+import { ArtesaoService } from './artesaos/artesaos.service';
+import { ArtesaoModule } from './artesaos/artesaos.module';
+import { Pagamento } from './pagamentos/pagamento.entity';
+import { Cliente } from './clientes/cliente.entity';
+import { MovimentacaoEstoque } from './movimentacao-estoque/movimentacao-estoque.entity';
+import { ItemVenda } from './vendas/item-venda.entity';
+import { Venda } from './vendas/venda.entity';
+
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -23,13 +30,15 @@ import { Artesao } from './artesaos/artesao.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      entities: [Usuario, Produto, Categoria],
+      entities: [Usuario, Produto, Categoria, Artesao, MovimentacaoEstoque, ItemVenda, Venda, Cliente, Pagamento],
       synchronize: true,
     }),
     UsuariosModule,
     AuthModule,
     ProdutosModule,
     CategoriasModule,
+    ArtesaoModule,
+   
   ],
   controllers: [AppController],
   providers: [AppService],
