@@ -1,22 +1,24 @@
-
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
+import { InjectRepository } from '@nestjs/typeorm';
+import { DataSource,Repository } from 'typeorm';
 import { Produto } from './produto.entity';
 import { Usuario } from '../usuarios/usuario.entity';
 import { Categoria } from '../categorias/categoria.entity';
-
 import { CriarProdutoDto } from './dto/criar-produto.dto';
 import { AtualizarProdutoDto } from './dto/atualizar-produto.dto';
+import { MovimentacaoEstoque } from '../movimentacao-estoque/movimentacao-estoque.entity';
+import { TipoMovimentacao } from '../movimentacao-estoque/enums/tipo-movimentacao.enum';
 
 @Injectable()
 export class ProdutosService {
   constructor(
+    private readonly dataSource: DataSource,
+
     @InjectRepository(Produto)
     private readonly produtosRepository: Repository<Produto>,
 
@@ -68,17 +70,40 @@ export class ProdutosService {
       throw new NotFoundException('Categoria não encontrada');
     }
 
-    const produto = this.produtosRepository.create({
-      nome: dto.nome,
-      descricao: dto.descricao,
-      preco: String(dto.preco),
-      quantidade_estoque: dto.quantidade_estoque,
-      imagem_url: dto.imagem_url,
-      artesao,
-      categoria,
-    });
+    const produtoSalvo = await this.dataSource.transaction(
+      async (manager) => {
+        const produtosRepository = manager.getRepository(Produto);
+        const movimentacoesRepository = manager.getRepository(
+          MovimentacaoEstoque,
+        );
 
-    const produtoSalvo = await this.produtosRepository.save(produto);
+        const produto = produtosRepository.create({
+          nome: dto.nome,
+          descricao: dto.descricao,
+          preco: String(dto.preco),
+          quantidade_estoque: dto.quantidade_estoque,
+          imagem_url: dto.imagem_url,
+          artesao,
+          categoria,
+        });
+
+        const novoProduto = await produtosRepository.save(produto);
+
+        // Registra o estoque inicial, caso a quantidade seja maior que zero.
+        if (novoProduto.quantidade_estoque > 0) {
+          const movimentacao = movimentacoesRepository.create({
+            idProduto: novoProduto.id_produto,
+            tipoMovimentacao: TipoMovimentacao.ENTRADA,
+            quantidade: novoProduto.quantidade_estoque,
+            motivo: 'Estoque inicial do cadastro do produto',
+          });
+
+          await movimentacoesRepository.save(movimentacao);
+        }
+
+        return novoProduto;
+      },
+    );
 
     return this.removerDadosSensiveis(produtoSalvo);
   }
@@ -201,10 +226,6 @@ export class ProdutosService {
 
     if (dto.preco !== undefined) {
       produto.preco = String(dto.preco);
-    }
-
-    if (dto.quantidade_estoque !== undefined) {
-      produto.quantidade_estoque = dto.quantidade_estoque;
     }
 
     if (dto.imagem_url !== undefined) {

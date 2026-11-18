@@ -18,7 +18,9 @@ import { Cliente } from './clientes/cliente.entity';
 import { MovimentacaoEstoque } from './movimentacao-estoque/movimentacao-estoque.entity';
 import { ItemVenda } from './vendas/item-venda.entity';
 import { Venda } from './vendas/venda.entity';
-
+import { MovimentacaoEstoqueModule } from './movimentacao-estoque/movimentacao-estoque.module';
+import { VendasModule } from './vendas/vendas.module';
+import { PagamentosModule } from './pagamentos/pagamentos.module';
 
 @Module({
   imports: [
@@ -38,7 +40,9 @@ import { Venda } from './vendas/venda.entity';
     ProdutosModule,
     CategoriasModule,
     ArtesaoModule,
-   
+    MovimentacaoEstoqueModule,
+    VendasModule,
+    PagamentosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

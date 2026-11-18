@@ -23,16 +23,16 @@ export class ItemVenda {
   quantidade: number;
 
   @Column({ name: 'preco_unitario', type: 'decimal', precision: 10, scale: 2 })
-  precoUnitario: number;
+  precoUnitario: string;
 
   @Column({ name: 'percentual_comissao', type: 'decimal', precision: 5, scale: 2, nullable: true })
-  percentualComissao: number;
+  percentualComissao: string | null;
 
   @Column({ name: 'valor_comissao', type: 'decimal', precision: 10, scale: 2, nullable: true })
-  valorComissao: number;
+  valorComissao: string | null;
 
   @Column({ name: 'valor_repasse', type: 'decimal', precision: 10, scale: 2, nullable: true })
-  valorRepasse: number;
+  valorRepasse: string | null;
 
   // Relacionamentos
   @ManyToOne(() => Venda, (venda) => venda.itens, { onDelete: 'CASCADE' })

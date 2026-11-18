@@ -6,6 +6,8 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Venda } from '../vendas/venda.entity';
+import { FormaPagamento } from './enums/forma-pagamento.enum';
+import { StatusPagamento } from './enums/status-pagamento.enum';
 
 @Entity('pagamento')
 export class Pagamento {
@@ -16,10 +18,10 @@ export class Pagamento {
   idVenda: number;
 
   @Column({ name: 'forma_pagamento', type: 'varchar', length: 30 })
-  formaPagamento: string; // Ex: 'PIX', 'DINHEIRO', 'CARTAO_CREDITO'
+  formaPagamento: FormaPagamento;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  valor: number;
+  valor: string;
 
   @Column({
     name: 'data_pagamento',
@@ -29,7 +31,7 @@ export class Pagamento {
   dataPagamento: Date;
 
   @Column({ type: 'varchar', length: 20, default: 'APROVADO' })
-  status: string;
+  status: StatusPagamento;
 
   // Relacionamento com Venda
   @ManyToOne(() => Venda, (venda) => venda.pagamentos, { onDelete: 'CASCADE' })
