@@ -281,13 +281,22 @@ export default class MainSeeder {
         {
           cliente: clientes[2],
           artesao: artesaos[2],
-          valorTotal: 75.00,
+          valorTotal: 45.00,
           status: 'CONCLUIDA',
           itens: [
-            { produto: produtos[2], quantidade: 1, precoUnitario: 45.00, comissao: 4.50, repasse: 40.50 },
-            { produto: produtos[4], quantidade: 1, precoUnitario: 30.00, comissao: 3.00, repasse: 27.00 },
+            {
+              produto: produtos[2],
+              quantidade: 1,
+              precoUnitario: 45.00,
+              comissao: 4.50,
+              repasse: 40.50,
+            },
           ],
-          pagamento: { formaPagamento: 'DINHEIRO', valor: 75.00, status: 'APROVADO' },
+          pagamento: {
+            formaPagamento: 'DINHEIRO',
+            valor: 45.00,
+            status: 'APROVADO',
+          },
         },
       ];
 
@@ -308,6 +317,19 @@ export default class MainSeeder {
             percentualComissao: 10.00,
             valorComissao: item.comissao,
             valorRepasse: item.repasse,
+          });
+
+          // Atualiza o saldo do produto após a venda.
+          item.produto.quantidade_estoque -= item.quantidade;
+
+          await produtoRepository.save(item.produto);
+
+          // Registra a saída no histórico.
+          await movEstoqueRepository.save({
+            produto: item.produto,
+            tipoMovimentacao: 'SAIDA',
+            quantidade: item.quantidade,
+            motivo: `Venda simulada`,
           });
         }
 

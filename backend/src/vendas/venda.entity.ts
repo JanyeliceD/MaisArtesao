@@ -16,8 +16,8 @@ export class Venda {
   @PrimaryGeneratedColumn({ name: 'id_venda' })
   idVenda: number;
 
-  @Column({ name: 'id_cliente', type: 'int' })
-  idCliente: number;
+  @Column({ name: 'id_cliente', type: 'int', nullable: true })
+  idCliente: number | null;
 
   @Column({ name: 'id_artesao', type: 'int' })
   idArtesao: number;
@@ -30,15 +30,15 @@ export class Venda {
   dataVenda: Date;
 
   @Column({ name: 'valor_total', type: 'decimal', precision: 10, scale: 2 })
-  valorTotal: number;
+  valorTotal: string;
 
   @Column({ type: 'varchar', length: 20, default: 'CONCLUIDA' })
   status: string;
 
   // Relacionamentos
-  @ManyToOne(() => Cliente, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => Cliente, { onDelete: 'RESTRICT', nullable: true })
   @JoinColumn({ name: 'id_cliente' })
-  cliente: Cliente;
+  cliente: Cliente | null;
 
   @ManyToOne(() => Artesao, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'id_artesao' })
