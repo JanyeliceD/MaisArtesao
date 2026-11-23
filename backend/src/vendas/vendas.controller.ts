@@ -1,4 +1,4 @@
-import {
+import { Get,
   Body,
   Controller,
   Post,
@@ -15,6 +15,7 @@ import { CriarVendaVitrineDto } from './dto/criar-venda-vitrine.dto';
 import { CriarVendaPresencialDto } from './dto/criar-venda-presencial.dto';
 import { Request } from 'express';
 import { UsuarioAutenticado } from '../auth/interfaces/usuario-autenticado.interface';
+import { Usuario } from '../usuarios/usuario.entity';
 
 interface RequestAutenticado extends Request {
   user: UsuarioAutenticado;
@@ -29,7 +30,7 @@ export class VendasController {
 
   // Compra realizada pela vitrine.
   @Post('vitrine')
-  @Roles(TipoUsuario.CLIENTE)
+  @Roles(TipoUsuario.CLIENTE, TipoUsuario.ARTESAO, TipoUsuario.ADMIN)
   criarPelaVitrine(
     @Body() dto: CriarVendaVitrineDto,
     @Req() req: RequestAutenticado,
@@ -39,6 +40,15 @@ export class VendasController {
       req.user,
     );
   }
+
+@Get('minhas')
+@UseGuards(JwtAuthGuard) // use o mesmo guard que você já usa na rota de criar venda pela vitrine
+async listarMinhasVendas(@Req() req: any) {
+  const idUsuario = Number(
+    req.user?.id_usuario ?? req.user?.idUsuario ?? req.user?.sub ?? req.user?.id,
+  );
+  return this.vendasService.listarMinhasVendas(idUsuario);
+}
 
   // Venda presencial registrada pelo artesão.
   @Post('presencial')
@@ -51,5 +61,11 @@ export class VendasController {
       dto,
       req.user,
     );
+  } 
+
+  @Get('artesao')
+  @Roles(TipoUsuario.ARTESAO)
+  listarVendasDoArtesao(@Req() req: RequestAutenticado) {
+    return this.vendasService.listarVendasDoArtesao(req.user.id_usuario);
   }
 }

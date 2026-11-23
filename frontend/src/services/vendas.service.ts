@@ -1,26 +1,23 @@
 import { api } from './api'
 
-export interface NovaVendaPayload {
-  idCliente: string // ou id_cliente / id_usuario, conforme sua tabela 'vendas'
+export interface CriarVendaVitrinePayload {
   forma_pagamento: string
-  valor_total: number
   itens: {
     id_produto: number
     quantidade: number
-    preco_unitario: number
   }[]
 }
 
 export const vendaService = {
-  // Busca o histórico da tabela 'vendas' (junto com 'item_vendas')
+  // Como o backend ainda não tem GET /vendas, retornamos vazio para evitar o 404
   async listar() {
-    const response = await api.get('/vendas')
-    return response.data
-  },
+  const { data } = await api.get('/vendas/minhas') // ou '/vendas', conforme a rota criada
+  return data
+},
 
-  // Grava na tabela 'vendas' e 'item_vendas'
-  async criar(dados: NovaVendaPayload) {
-    const response = await api.post('/vendas', dados)
+  // Rota POST /vendas/vitrine (exatamente o que está no seu VendasController)
+  async criarPelaVitrine(dados: CriarVendaVitrinePayload) {
+    const response = await api.post('/vendas/vitrine', dados)
     return response.data
   },
 }

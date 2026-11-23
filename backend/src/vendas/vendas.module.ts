@@ -11,6 +11,7 @@ import { Produto } from '../produtos/produto.entity';
 import { Artesao } from '../artesaos/artesao.entity';
 import { Cliente } from '../clientes/cliente.entity';
 import { MovimentacaoEstoque } from '../movimentacao-estoque/movimentacao-estoque.entity';
+import { Usuario } from '../usuarios/usuario.entity';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { MovimentacaoEstoque } from '../movimentacao-estoque/movimentacao-estoqu
       Artesao,
       Cliente,
       MovimentacaoEstoque,
+      Usuario,
     ]),
   ],
   controllers: [VendasController],

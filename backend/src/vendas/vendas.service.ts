@@ -21,6 +21,7 @@ import { CriarVendaPresencialDto } from './dto/criar-venda-presencial.dto';
 
 import { FormaPagamento } from '../pagamentos/enums/forma-pagamento.enum';
 import { StatusPagamento } from '../pagamentos/enums/status-pagamento.enum';
+import { Usuario } from '../usuarios/usuario.entity';
 
 type UsuarioAutenticado = {
   id_usuario: number;
@@ -41,7 +42,8 @@ export class VendasService {
   constructor(
     @InjectRepository(Venda)
     private readonly vendasRepository: Repository<Venda>,
-
+    @InjectRepository(Usuario)
+    private readonly usuariosRepository: Repository<Usuario>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -72,6 +74,51 @@ export class VendasService {
       dto.id_cliente,
     );
   }
+  async listarMinhasVendas(idUsuario: number) {
+  return this.vendasRepository.find({
+    where: {
+      cliente: {
+        idUsuario,
+      },
+    },
+    relations: {
+      cliente: true,
+      itens: {
+        produto: true,
+      },
+      pagamentos: true,
+    },
+    order: {
+      dataVenda: 'DESC',
+    },
+  });
+}
+  async listarVendasDoArtesao(idUsuario: number) {
+  return this.vendasRepository.find({
+    where: {
+      artesao: {
+        usuario: {
+          id_usuario: idUsuario,
+        },
+      },
+    },
+    relations: {
+      cliente: {
+        usuario: true,
+      },
+      artesao: {
+        usuario: true,
+      },
+      itens: {
+        produto: true,
+      },
+      pagamentos: true,
+    },
+    order: {
+      dataVenda: 'DESC',
+    },
+  });
+}
 
   private async criarVenda(
     itensSolicitados: ItemSolicitado[],
@@ -103,6 +150,7 @@ export class VendasService {
       const clientesRepository = manager.getRepository(Cliente);
       const vendasRepository = manager.getRepository(Venda);
       const itensRepository = manager.getRepository(ItemVenda);
+      const usuariosRepository = manager.getRepository(Usuario);
       const pagamentosRepository = manager.getRepository(Pagamento);
       const movimentacoesRepository =
         manager.getRepository(MovimentacaoEstoque);
@@ -113,32 +161,70 @@ export class VendasService {
       if (origem === 'VITRINE') {
         cliente = await clientesRepository.findOne({
           where: {
-            usuario: {
-              id_usuario: usuario.id_usuario,
-            },
+            idUsuario: usuario.id_usuario,
           },
           relations: {
             usuario: true,
-          },
+          } 
+      
         });
-
+    
+        
         if (!cliente) {
-          throw new NotFoundException(
-            'Perfil de cliente não encontrado.',
-          );
-        }
-      } else if (idCliente !== undefined) {
-        cliente = await clientesRepository.findOne({
-          where: {
-            idCliente: idCliente,
-          },
-        });
+          const usuarioBanco = await usuariosRepository.findOne({
+            where: {
+              id_usuario: usuario.id_usuario,
+            },
+          });
 
-        if (!cliente) {
-          throw new NotFoundException('Cliente não encontrado.');
-        }
-      }
+          if (!usuarioBanco) {
+            throw new NotFoundException('Usuário não encontrado.');
+          }
 
+          if (!usuarioBanco.ativo) {
+            throw new ForbiddenException('Usuário inativo.');
+          }
+
+          if (!usuarioBanco.cpf) {
+            throw new BadRequestException(
+              'É necessário ter um CPF cadastrado no perfil para concluir a compra.',
+            );
+          }
+
+          const clientePorCpf = await clientesRepository.findOne({
+            where: {
+              cpf: usuarioBanco.cpf,
+            },
+          });
+
+          if (clientePorCpf) {
+            throw new BadRequestException(
+              'Este CPF já está associado a outro cadastro de cliente.',
+            );
+          }
+
+          const novoCliente = clientesRepository.create({
+            idUsuario: usuarioBanco.id_usuario,
+            cpf: usuarioBanco.cpf,
+            endereco: usuarioBanco.endereco ?? null,
+            usuario: usuarioBanco,
+          });
+
+          cliente = await clientesRepository.save(novoCliente);
+        }
+
+        } else if (idCliente !== undefined) {
+     cliente = await clientesRepository.findOne({
+       where: {
+         idCliente: idCliente,
+       },
+     });
+
+     if (!cliente) {
+       throw new NotFoundException('Cliente não encontrado.');
+     }
+   }
+      
       // 2. Na venda presencial, identifica o artesão pelo JWT.
       let artesaoAutenticado: Artesao | null = null;
 
