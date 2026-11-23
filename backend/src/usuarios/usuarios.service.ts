@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuario } from './usuario.entity';
+import { Cliente } from '../clientes/cliente.entity';
 import { CriarUsuarioDto } from './dto/criar-usuario.dto';
 import { AtualizarUsuarioDto } from './dto/atualizar-usuario.dto';
 import * as bcrypt from 'bcrypt';
@@ -16,6 +17,10 @@ export class UsuariosService {
   constructor(
     @InjectRepository(Usuario)
     private readonly repository: Repository<Usuario>,
+    @InjectRepository(Cliente)
+    private readonly clienteRepository: Repository<Cliente>,
+    @InjectRepository(Usuario)
+    private readonly usuariosRepository: Repository<Usuario>,
   ) {}
 
   private removerSenha(usuario: Usuario) {
@@ -62,30 +67,49 @@ export class UsuariosService {
 
   async criar(dto: CriarUsuarioDto) {
     const usuarioExistente = await this.repository.findOneBy({
-        email: dto.email,
+      email: dto.email,
     });
 
     if (usuarioExistente) {
-        throw new ConflictException('E-mail já cadastrado');
+      throw new ConflictException('E-mail já cadastrado');
     }
 
     const senhaHash = await bcrypt.hash(dto.senha, 10);
 
     const usuario = this.repository.create({
-        nome: dto.nome,
-        email: dto.email,
-        senha_hash: senhaHash,
-        telefone: dto.telefone,
-        cpf: dto.cpf,
-        endereco: dto.endereco,
-        tipo_usuario: dto.tipo_usuario,
-        ativo: true,
+      nome: dto.nome,
+      email: dto.email,
+      senha_hash: senhaHash,
+      telefone: dto.telefone,
+      cpf: dto.cpf,
+      endereco: dto.endereco,
+      tipo_usuario: dto.tipo_usuario,
+      ativo: true,
     });
 
     const usuarioSalvo = await this.repository.save(usuario);
-    
-    return this.removerSenha(usuarioSalvo);
+
+    if (usuarioSalvo.tipo_usuario === TipoUsuario.CLIENTE && usuarioSalvo.cpf) {
+  const clienteExistente = await this.clienteRepository.findOne({
+    where: [
+      { idUsuario: usuarioSalvo.id_usuario },
+      { cpf: usuarioSalvo.cpf },
+    ],
+  });
+
+  if (!clienteExistente) {
+    const novoCliente = this.clienteRepository.create({
+      idUsuario: usuarioSalvo.id_usuario,
+      cpf: usuarioSalvo.cpf,
+      endereco: usuarioSalvo.endereco ?? null,
+      usuario: usuarioSalvo,
+    });
+    await this.clienteRepository.save(novoCliente);
+  }
 }
+
+    return this.removerSenha(usuarioSalvo);
+  }
 
   async criarArtesao(dto: Omit<CriarUsuarioDto, 'tipo_usuario'>) {
     return this.criar({

@@ -1,13 +1,11 @@
-
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { Produto } from './produto.entity';
 import { Usuario } from '../usuarios/usuario.entity';
 import { Categoria } from '../categorias/categoria.entity';
-
 import { ProdutosController } from './produtos.controller';
 import { ProdutosService } from './produtos.service';
+import { MovimentacaoEstoque } from '../movimentacao-estoque/movimentacao-estoque.entity';
 
 @Module({
   imports: [
@@ -15,6 +13,7 @@ import { ProdutosService } from './produtos.service';
       Produto,
       Usuario,
       Categoria,
+      MovimentacaoEstoque,
     ]),
   ],
   controllers: [ProdutosController],

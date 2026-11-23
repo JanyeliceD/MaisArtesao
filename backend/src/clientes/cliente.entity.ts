@@ -7,8 +7,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Usuario } from '../usuarios/usuario.entity';
-// Importaremos a Venda assim que criarmos a entidade Venda
-// import { Venda } from '../vendas/venda.entity';
+import { Venda } from '../vendas/venda.entity';
 
 @Entity('cliente')
 export class Cliente {
@@ -28,7 +27,6 @@ export class Cliente {
   @JoinColumn({ name: 'id_usuario' })
   usuario: Usuario;
 
-  // Relacionamento com Venda (descomentar após criar a entidade Venda)
-  // @OneToMany(() => Venda, (venda) => venda.cliente)
-  // vendas: Venda[];
+  @OneToMany(() => Venda, (venda) => venda.cliente)
+  vendas: Venda[];
 }

@@ -6,6 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Produto } from '../produtos/produto.entity';
+import { TipoMovimentacao } from './enums/tipo-movimentacao.enum';
 
 @Entity('movimentacao_estoque')
 export class MovimentacaoEstoque {
@@ -16,7 +17,7 @@ export class MovimentacaoEstoque {
   idProduto: number;
 
   @Column({ name: 'tipo_movimentacao', type: 'varchar', length: 20 })
-  tipoMovimentacao: string; // Ex: 'ENTRADA' ou 'SAIDA'
+  tipoMovimentacao: TipoMovimentacao;
 
   @Column({ type: 'int' })
   quantidade: number;
@@ -33,7 +34,7 @@ export class MovimentacaoEstoque {
 
   // Relacionamento com Produto
   @ManyToOne(() => Produto, (produto) => produto.movimentacoesEstoque, {
-    onDelete: 'CASCADE',
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'id_produto' })
   produto: Produto;

@@ -24,11 +24,6 @@ export class AtualizarProdutoDto {
   preco?: number;
 
   @IsInt()
-  @Min(0)
-  @IsOptional()
-  quantidade_estoque?: number;
-
-  @IsInt()
   @IsPositive()
   @IsOptional()
   id_artesao?: number;
