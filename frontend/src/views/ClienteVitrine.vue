@@ -359,9 +359,7 @@ const carregarMeusPedidos = async () => {
   carregandoPedidos.value = true
   try {
     const listaVendas = await vendaService.listar()
-    const idUsuarioLogado = Number(
-      auth.user?.id_usuario ?? auth.user?.idUsuario ?? auth.user?.id,
-    )
+    const idUsuarioLogado = Number(auth.user?.id)
 
     const minhasVendasFiltradas = listaVendas.filter((v: any) => {
       const idUsuarioVenda =
